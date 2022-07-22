@@ -66,7 +66,7 @@ const displayMovements = function (movements) {
             <div class="movements__type movements__type--${type}">
                 ${i + 1} ${type}
             </div>
-            <div class="movements__value">${mov}</div>
+            <div class="movements__value">${mov}€</div>
         </div>
         `;
         // console.log(html);
@@ -90,6 +90,27 @@ createUsernames(accounts);
 
 const calcDisplayBalance = function (movements) {
     const balance = movements.reduce((acc, cur) => acc + cur, 0);
-    labelBalance.textContent = `${balance} EUR`;
+    labelBalance.textContent = `${balance}€`;
 };
 calcDisplayBalance(account1.movements);
+
+const calcDisplaySummary = function (movements) {
+    const incomes = movements
+        .filter((mov) => mov > 0)
+        .reduce((acc, mov) => acc + mov, 0);
+
+    const out = movements
+        .filter((mov) => mov < 0)
+        .reduce((acc, mov) => acc + Math.abs(mov), 0);
+
+    const interest = movements
+        .filter((mov) => mov > 0)
+        .map((deposit) => (deposit * 1.2) / 100)
+        .filter((int, i, arr) => int >= 1)
+        .reduce((acc, int) => acc + int, 0);
+
+    labelSumIn.textContent = `${incomes}€`;
+    labelSumOut.textContent = `${out}€`;
+    labelSumInterest.textContent = `${interest}€`;
+};
+calcDisplaySummary(account1.movements);
