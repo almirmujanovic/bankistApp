@@ -74,8 +74,6 @@ const displayMovements = function (movements) {
     });
 };
 
-displayMovements(account1.movements);
-
 const createUsernames = function (accs) {
     accs.forEach(function (acc) {
         acc.username = acc.owner
@@ -92,20 +90,19 @@ const calcDisplayBalance = function (movements) {
     const balance = movements.reduce((acc, cur) => acc + cur, 0);
     labelBalance.textContent = `${balance}€`;
 };
-calcDisplayBalance(account1.movements);
 
-const calcDisplaySummary = function (movements) {
-    const incomes = movements
+const calcDisplaySummary = function (account) {
+    const incomes = account.movements
         .filter((mov) => mov > 0)
         .reduce((acc, mov) => acc + mov, 0);
 
-    const out = movements
+    const out = account.movements
         .filter((mov) => mov < 0)
         .reduce((acc, mov) => acc + Math.abs(mov), 0);
 
-    const interest = movements
+    const interest = account.movements
         .filter((mov) => mov > 0)
-        .map((deposit) => (deposit * 1.2) / 100)
+        .map((deposit) => (deposit * account.interestRate) / 100)
         .filter((int, i, arr) => int >= 1)
         .reduce((acc, int) => acc + int, 0);
 
@@ -113,4 +110,33 @@ const calcDisplaySummary = function (movements) {
     labelSumOut.textContent = `${out}€`;
     labelSumInterest.textContent = `${interest}€`;
 };
-calcDisplaySummary(account1.movements);
+
+let currentAccount;
+
+//event handler
+btnLogin.addEventListener('click', function (e) {
+    //prevent form from submitting
+    e.preventDefault();
+
+    currentAccount = accounts.find(
+        (acc) => acc.username === inputLoginUsername.value
+    );
+    console.log(currentAccount);
+
+    if (currentAccount?.pin === Number(inputLoginPin.value)) {
+        //display ui and message
+        labelWelcome.textContent = `Welcome back ${
+            currentAccount.owner.split(' ')[0]
+        }`;
+        containerApp.style.opacity = 100;
+    }
+
+    //clear inputs
+    inputLoginUsername.value = '';
+    inputLoginPin.value = '';
+    inputLoginPin.blur();
+
+    displayMovements(currentAccount.movements);
+    calcDisplaySummary(currentAccount);
+    calcDisplayBalance(currentAccount.movements);
+});
