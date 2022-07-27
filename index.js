@@ -55,10 +55,10 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-const displayMovements = function (movements) {
+const displayMovements = function (account) {
     containerMovements.innerHTML = ''; //delete any data
 
-    movements.forEach(function (mov, i) {
+    account.movements.forEach(function (mov, i) {
         const type = mov > 0 ? 'deposit' : 'withdrawal';
         // console.log(i);
         const html = `
@@ -86,9 +86,9 @@ const createUsernames = function (accs) {
 
 createUsernames(accounts);
 
-const calcDisplayBalance = function (movements) {
-    const balance = movements.reduce((acc, cur) => acc + cur, 0);
-    labelBalance.textContent = `${balance}€`;
+const calcDisplayBalance = function (account) {
+    account.balance = account.movements.reduce((acc, cur) => acc + cur, 0);
+    labelBalance.textContent = `${account.balance}€`;
 };
 
 const calcDisplaySummary = function (account) {
@@ -112,7 +112,13 @@ const calcDisplaySummary = function (account) {
 };
 
 let currentAccount;
-
+const updateUI = function (currentAccount) {
+    displayMovements(currentAccount);
+    calcDisplaySummary(currentAccount);
+    calcDisplayBalance(currentAccount);
+    // mozda treba obrisat
+    inputTransferAmount.value = inputTransferTo.value = '';
+};
 //event handler
 btnLogin.addEventListener('click', function (e) {
     //prevent form from submitting
@@ -121,7 +127,6 @@ btnLogin.addEventListener('click', function (e) {
     currentAccount = accounts.find(
         (acc) => acc.username === inputLoginUsername.value
     );
-    console.log(currentAccount);
 
     if (currentAccount?.pin === Number(inputLoginPin.value)) {
         //display ui and message
@@ -129,14 +134,42 @@ btnLogin.addEventListener('click', function (e) {
             currentAccount.owner.split(' ')[0]
         }`;
         containerApp.style.opacity = 100;
+        console.log(`logged in as ${currentAccount.owner}`);
     }
 
     //clear inputs
     inputLoginUsername.value = '';
     inputLoginPin.value = '';
     inputLoginPin.blur();
+    /*  const updateUI = function (currentAccount) {
+        displayMovements(currentAccount);
+        calcDisplaySummary(currentAccount);
+        calcDisplayBalance(currentAccount);
+    };
+*/
+    updateUI(currentAccount);
+});
 
-    displayMovements(currentAccount.movements);
-    calcDisplaySummary(currentAccount);
-    calcDisplayBalance(currentAccount.movements);
+btnTransfer.addEventListener('click', function (e) {
+    e.preventDefault();
+    const amount = Number(inputTransferAmount.value);
+    const receiveAcc = accounts.find(
+        (acc) => acc.username === inputTransferTo.value
+    );
+
+    inputTransferAmount.value = inputTransferTo.value = '';
+    if (
+        receiveAcc &&
+        amount > 0 &&
+        amount <= currentAccount.balance &&
+        receiveAcc.username !== currentAccount?.username
+    ) {
+        receiveAcc.movements.push(amount);
+        receiveAcc.balance += amount;
+        currentAccount.movements.push(-amount);
+        currentAccount.balance -= amount;
+    }
+    // console.log(amount, receiveAcc.movements);
+
+    updateUI(currentAccount);
 });
