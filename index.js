@@ -55,10 +55,14 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-const displayMovements = function (account) {
+const displayMovements = function (account, sort = false) {
     containerMovements.innerHTML = ''; //delete any data
 
-    account.movements.forEach(function (mov, i) {
+    const movs = sort
+        ? account.movements.slice().sort((a, b) => a - b)
+        : account.movements;
+
+    movs.forEach(function (mov, i) {
         const type = mov > 0 ? 'deposit' : 'withdrawal';
         // console.log(i);
         const html = `
@@ -174,6 +178,19 @@ btnTransfer.addEventListener('click', function (e) {
     updateUI(currentAccount);
 });
 
+btnLoan.addEventListener('click', function (e) {
+    e.preventDefault();
+
+    const amount = Number(inputLoanAmount.value);
+    if (
+        amount > 0 &&
+        currentAccount.movements.some((mov) => mov > amount * 0.1)
+    ) {
+        currentAccount.movements.push(amount);
+        updateUI(currentAccount);
+    } else console.log(`Loan unsuccessful`);
+});
+
 btnClose.addEventListener('click', function (e) {
     e.preventDefault();
     if (
@@ -187,4 +204,12 @@ btnClose.addEventListener('click', function (e) {
         containerApp.style.opacity = 0;
     }
     inputClosePin.value = inputCloseUsername.value = '';
+});
+
+let sorted = false;
+
+btnSort.addEventListener('click', function (e) {
+    e.preventDefault();
+    displayMovements(currentAccount, !sorted);
+    sorted = !sorted;
 });
